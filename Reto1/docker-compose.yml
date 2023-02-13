@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  app:
+    build: .
+    image: ccs_back
+    container_name: ccs_back
+    restart: always
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
