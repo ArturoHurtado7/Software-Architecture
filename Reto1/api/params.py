@@ -1,5 +1,5 @@
 
-class BlackBoard(object):
+class Params(object):
 
     def __init__(self):
         self.common_state = {
@@ -34,10 +34,10 @@ class BlackBoard(object):
         Returns the ranges
         """
         return {
-            'temperature': {'normal': 0, 'warning': 30, 'emergency': 40},
-            'speed': {'normal': 0, 'warning': 60, 'emergency': 100},
-            'planned_stops': {'normal': 0, 'warning': 60, 'emergency': 100},
-            'non_planned_stops': {'normal': 0, 'warning': 20, 'emergency': 40}
+            'temperature': {'normal': 0, 'warning': 30, 'danger': 40},
+            'speed': {'normal': 0, 'warning': 60, 'danger': 100},
+            'planned_stops': {'normal': 0, 'warning': 60, 'danger': 100},
+            'non_planned_stops': {'normal': 0, 'warning': 20, 'danger': 40}
         }
 
-board = BlackBoard()
+params = Params()

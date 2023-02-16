@@ -1,8 +1,9 @@
 # FastAPI
 from fastapi import APIRouter, status
 from api.schemas import CentralSchema
-from api.black_board import board
-from api.task import process
+from api.params import params
+from api.task import Task
+from time import time
 
 router = APIRouter()
 response_model = {
@@ -18,5 +19,7 @@ def central(request: CentralSchema) -> dict:
     """
     Central API endpoint
     """
-    response = process(board, request)
-    return response
+    start_time = time()
+    task = Task(params, request, start_time)
+    task.priority()
+    return {"message": "Task in execution"}

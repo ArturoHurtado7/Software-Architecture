@@ -1,38 +1,78 @@
 from api.schemas import CentralSchema
-from api.black_board import BlackBoard
+from api.params import Params
+from time import time
 
-def process(board: BlackBoard, request: CentralSchema) -> dict:
-    """
-    Processes the task
-    """
-    # local variables
-    emergencies = []
-    warnings = []
-    attributes = {
-        'speed': request.truck.speed,
-        'planned_stops': request.truck.stops.planned,
-        'non_planned_stops': request.truck.stops.non_planned,
-        'temperature': request.shipment.temperature
-    }
+class Task(object):
+    def __init__(self, params: Params, request: CentralSchema, start_time: float):
+        self.params = params.common_state
+        self.request = request
+        self.start_time = start_time
+        self.danger = []
+        self.warnings = []
+        self.attributes = {
+            'speed': self.request.truck.speed,
+            'planned_stops': self.request.truck.stops.planned,
+            'non_planned_stops': self.request.truck.stops.non_planned,
+            'temperature': self.request.shipment.temperature
+        }
 
-    # passthrough emergencies
-    if request.panic:
-        emergencies.append('panic')
-    if request.shipment.state:
-        emergencies.append('status')
 
-    # process attributes and ranges
-    for attribute, value in attributes.items():
-        # attribute black board variables
-        attribute_ranges = board.common_state.get(attribute)
-        emergency_value = attribute_ranges.get('emergency')
-        Warning_value = attribute_ranges.get('warning')
+    def priority(self):
+        """
+        Priority of the task
+        """
+        if self.request.panic:
+            self.danger.append('panic')
+            self.notify()
+        else:
+            self.classify()
 
-        # attribute processing
-        if value > emergency_value:
-            emergencies.append(attribute)
-            continue
-        elif value > Warning_value:
-            warnings.append(attribute)
 
-    return {'warnings': warnings, 'emergencies': emergencies}
+    def classify(self):
+        """
+        Classify the task in danger or warning
+        """
+        # validate danger & warnings
+        if self.request.shipment.state:
+            self.danger.append('status')
+
+        # process attributes and ranges
+        for attribute, value in self.attributes.items():
+            # attribute black params variables
+            ranges = self.params.get(attribute)
+            danger = ranges.get('danger')
+            warning = ranges.get('warning')
+
+            # attribute processing
+            if value > danger:
+                self.danger.append(attribute)
+            elif value > warning:
+                self.warnings.append(attribute)
+
+        # notify
+        if len(self.danger) > 0:
+            self.notify()
+        elif len(self.warnings) > 0:
+            self.notify()
+        else:
+            self.save()
+
+
+    def notify(self):
+        """
+        Notify the user
+        """
+        if len(self.danger) > 0:
+            print('send email to: ', self.params.get('danger'), str(self.danger))
+        elif len(self.warnings) > 0:
+            print('send email to: ', self.params.get('warning'), str(self.warnings))
+        self.save()
+
+
+    def save(self):
+        """
+        Save the data
+        """
+        total_time = time() - self.start_time
+        print('time', total_time)
+
